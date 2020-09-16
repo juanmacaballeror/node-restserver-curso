@@ -20,7 +20,7 @@ app.use(require('./routes/usuario'));
 //conectarse a la bbdd
 mongoose.connect(process.env.URLDB,
   //configuracion conexion, si se quita da un warning
-  { useNewUrlParser: true, useCreateIndex: true },
+  { useNewUrlParser: true, useCreateIndex: true, useUnifiedTopology: true },
   (err, res) => {
     if (err) throw new err;
     console.log('BBDD conectada!!!!');
