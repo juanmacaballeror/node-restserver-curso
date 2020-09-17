@@ -5,9 +5,12 @@ const bcrypt = require('bcrypt');
 const _ = require('underscore');
 //estándar de empezar con mayúsculas
 const Usuario = require('../models/usuarios');
-const usuarios = require('../models/usuarios');
+//const usuarios = require('../models/usuarios');
 
-app.get('/usuario', function (req, res) {
+const { verificaToken, verificaAdmin_Role } = require('../middlewares/autenticacion')
+
+
+app.get('/usuario', verificaToken, (req, res) => {
 
   let desde = req.query.desde || 0;
   desde = Number(desde)
@@ -45,21 +48,24 @@ app.get('/usuario', function (req, res) {
 
 
 })
+//si queremos que la peticion ejecute 2 middleware, se inyectan con [] sino entre ,
+app.post('/usuario', [verificaToken, verificaAdmin_Role], (req, res) => {
 
-app.post('/usuario', function (req, res) {
-  let body = req.body;
-  let usuario = new Usuario({
-    nombre: body.nombre,
-    email: body.email,
-    password: bcrypt.hashSync(body.password, 10),
-    role: body.role
+  const { password, nombre, email, role } = req.body;
+
+  //bcrypt.hashSync añade 10 caracteres mas a la password y lo encripta
+  let usuarioSchema = new Usuario({
+    nombre: nombre,
+    email: email,
+    password: bcrypt.hashSync(password, 10),
+    role: role
   });
 
   //.save(palabra reservada de mongoose) guarda en la BBDD
   //err, devuelve el error
   //usuarioDB, el usuario que grabo en mongoDB
 
-  usuario.save((err, usuarioDB) => {
+  usuarioSchema.save((err, usuarioDB) => {
     // console.log('err', err);
     if (err) {
       res.status(400).json({
@@ -78,8 +84,8 @@ app.post('/usuario', function (req, res) {
   })
 
 })
-
-app.put('/usuario/:id', function (req, res) {
+//si queremos que la peticion ejecute 2 middleware, se inyectan con [] sino entre ,
+app.put('/usuario/:id', [verificaToken, verificaAdmin_Role], (req, res) => {
   let id = req.params.id;
   //let body = req.body;
 
@@ -104,7 +110,7 @@ app.put('/usuario/:id', function (req, res) {
   })
 })
 
-app.delete('/usuario/:id', function (req, res) {
+app.delete('/usuario/:id', [verificaToken, verificaAdmin_Role], (req, res) => {
   let id = req.params.id;
   let cambiaEstado = {
     estado: false
@@ -112,7 +118,7 @@ app.delete('/usuario/:id', function (req, res) {
   //esto haria una baja fisica
   //usuarios.findByIdAndRemove(id, (err, usuarioBorrado) => {
   // hacemos una baja logica
-  usuarios.findByIdAndUpdate(id, cambiaEstado, { new: true }, (err, usuarioBorrado) => {
+  Usuario.findByIdAndUpdate(id, cambiaEstado, { new: true }, (err, usuarioBorrado) => {
     if (err) {
       res.status(400).json({
         ok: false,

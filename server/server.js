@@ -15,14 +15,14 @@ app.use(bodyParser.urlencoded({ extended: false }))
 // parse application/json
 app.use(bodyParser.json())
 
-app.use(require('./routes/usuario'));
+//Configuracion global de rutas
+app.use(require('./routes/index'));
 
 //conectarse a la bbdd
 mongoose.connect(process.env.URLDB,
   //configuracion conexion, si se quita da un warning  
   { useNewUrlParser: true, useCreateIndex: true },
   (err, res) => {
-    console.log('process.env.URLDB', process.env.URLDB);
     if (err) throw new err;
     console.log('BBDD conectada!!!!');
   });
